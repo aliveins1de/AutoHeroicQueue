@@ -1,0 +1,32 @@
+name: Release
+
+# Запускается при пуше тега вида v1.0.0, v1.2.3 и т.д.
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Собираем zip так, чтобы внутри лежала папка AutoHeroicQueue/
+      # с .toc и .lua - именно так, как её нужно класть в Interface/AddOns/
+      - name: Build addon zip
+        run: |
+          mkdir -p build/AutoHeroicQueue
+          cp AutoHeroicQueue.toc AutoHeroicQueue.lua build/AutoHeroicQueue/
+          cd build
+          zip -r ../AutoHeroicQueue.zip AutoHeroicQueue
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: AutoHeroicQueue.zip
+          generate_release_notes: true
